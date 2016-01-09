@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title></title>
+  </head>
+  <body>
+    <script>
+      
+      function obj(xpos,ypos,size)
+      {
+        this.xpos = xpos;
+        this.ypos = ypos;
+        this.size = size;
+      }
+      
+      var ball = new obj(10,10,20);
+      
+      var obj_array = [];
+      for(i=0;i<4;i++)
+      {
+        obj_array[i]=new Array(4);
+      }
+      obj_array[0][0]=ball;   
+      obj_array[1][0]=ball;
+      document.write(obj_array+"<br>");
+      document.write(obj_array[1][0]+"<br>");
+      document.write(obj_array[1][0].xpos);
+    </script>
+  </body>
+</html>

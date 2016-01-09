@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title>TypeSpeed</title>
+  </head>
+  <body><canvas id="myCanvas" height="600" width="1000" tabindex="0"></canvas>
+    <script>
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d");
+      canvas.focus();
+      var word_speed = 2;
+      var counter = 0;
+      var keys=[];
+      var word_store = ["hello","can","you","hear","me"];
+      var words=[];
+      var input_string="";
+      var score=0;
+      
+      function GenerateRandomY()
+      {
+        var y = (Math.floor(25+Math.random()*(canvas.height-150)));
+        return y;
+      }
+      
+      function GenerateRandomWord()
+      {
+        return(Math.floor(Math.random()*word_store.length));
+      }
+      function DetectKeyDown(e)
+      {
+        //console.log("keypress detected");      
+        keys[e.keyCode]=true;
+      }
+      
+      function DetectKeyUp(e)
+      {
+        keys[e.keyCode]=false;
+      } 
+      
+      function SlidingWord(text,xpos,ypos,position,glowpos)
+      {
+        this.text = text;
+        this.xpos = xpos;
+        this.ypos = ypos;
+        this.position = position;
+        this.glowpos = glowpos;
+        this.DrawWord = DrawWord;
+        this.SlideWord = SlideWord;
+        this.DeleteWord = DeleteWord;
+      }
+      
+      function DrawWord()
+      {
+        //console.log("drawword");
+        ctx.font="30px Lucida Console";
+        ctx.fillStyle="white";
+        ctx.fillText(this.text,this.xpos,this.ypos);        
+      }
+      
+      function SlideWord()
+      {
+        //console.log("slideword");
+        this.xpos-=word_speed;
+        if(this.xpos<0)
+        {         
+         this.DeleteWord();          
+        }
+      }
+      
+      function DeleteWord()
+      {
+          words.splice(this.position,1);
+          for(i=this.position;i<words.length;i++)
+          {
+            words[i].position--;
+          }
+      }
+      
+      function WordChooser()
+      {
+        //console.log("wordchooser");
+        var pos=0;     
+        var y;        
+        if(counter>40)
+        {
+          pos=GenerateRandomWord();
+          y = GenerateRandomY();
+          //console.log(word_store[pos]);
+          words[words.length] = new SlidingWord(word_store[pos],canvas.width,y,words.length);
+          counter=0;
+        }
+      }
+      
+      function InputDetector(e)
+      {
+        var char;
+        //console.log(e.keyCode);
+        for(i=65;i<91;i++)
+        {         
+          if(e.keyCode==i)
+          {
+            char = String.fromCharCode(i);
+            char = char.toLowerCase();            
+            input_string = input_string+char;
+            //console.log(input_string);
+          }
+        }
+        if(e.keyCode==8)
+        {
+          input_string = input_string.slice(0,input_string.length-1);
+        }
+      }
+      
+      function DisplayInput()
+      {
+        ctx.font="80px Trebuchet MS";
+        ctx.fillStyle="white";
+        ctx.fillText(input_string,350,canvas.height-30);
+        
+      }
+      
+      function DisplayScore()
+      {
+        ctx.font="60px Trebuchet MS";
+        ctx.fillStyle="white";
+        ctx.fillText("Score:"+score,20,canvas.height-30);
+      }
+      
+      function StringChecker()
+      {
+        
+        for(i=0;i<words.length;i++)
+        {
+          console.log(input_string);
+          if(input_string==words[i].text)
+          {
+            console.log("word detected");
+            words[i].DeleteWord();
+            score+=10;
+            input_string="";
+          }
+        }
+      }
+      
+      function DrawBackground()
+      {
+        ctx.fillStyle="black";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+      }
+      
+      function MainLoop()
+      {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        DrawBackground();
+        WordChooser();        
+        for(var i=0;i<words.length;i++)
+        {          
+          //console.log(words[i].text+" "+words[i].xpos+" "+words[i].ypos+"<br>");
+          words[i].DrawWord();
+          words[i].SlideWord();
+        }        
+        counter++;  
+        DisplayInput();
+        DisplayScore();
+        StringChecker();
+      }      
+      
+      canvas.addEventListener("keydown",InputDetector); 
+      
+      setInterval(MainLoop,25);
+    </script>
+  </body>
+</html>

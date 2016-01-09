@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title>Pong 2D</title>
+  </head>
+  <body> <canvas id="myCanvas" height="600" width="1000" tabindex="0"></canvas>
+    <script>
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d");
+      canvas.focus();
+      
+      var keys=[];
+      
+      var player1_score=0;
+      var player2_score=0;
+      var score_limit=window.prompt("Enter score limit.",10);
+      
+      var xposA=50;
+      var yposA=250;
+      var xposB=canvas.width-60;
+      var yposB=250;
+      var paddle_height=100;
+      var paddle_width=5;
+      var paddle_speed=10;
+      var xposC=300;
+      var yposC=300;
+      var radius=10;
+      var ballspeed=10;
+      
+      var angle = GenerateRandomAngle();
+      var radians = angle*Math.PI/180;
+      var xvelC = Math.cos(radians)*ballspeed;
+      var yvelC = Math.sin(radians)*ballspeed;
+      
+      
+      function GenerateRandomAngle()
+      {
+        var randomangle = Math.floor(Math.random()*360);
+        while(((randomangle>60)&&(randomangle<120))||((randomangle>240)&&(randomangle<300)))
+          randomangle=Math.floor(Math.random()*360);
+        return randomangle;
+      }
+      
+      function DrawPaddleA()
+      {
+        ctx.beginPath();
+        ctx.rect(xposA,yposA,paddle_width,paddle_height);
+        ctx.fillStyle="red";
+        ctx.stroke();
+        ctx.fill();
+      }
+      
+      function DrawPaddleB()
+      {
+        ctx.beginPath();
+        ctx.rect(xposB,yposB,paddle_width,paddle_height);
+        ctx.fillStyle="blue";
+        ctx.stroke();
+        ctx.fill();
+      }
+      
+      function DrawBall()
+      {
+        ctx.beginPath();
+        ctx.arc(xposC,yposC,radius,0,2*Math.PI);
+        ctx.fillStyle="green";
+        ctx.stroke();
+        ctx.fill();
+      }
+      
+      function UpdateBall()
+      {
+        xposC+=xvelC;
+        yposC+=yvelC;
+      }
+      
+      function DetectKeyDown(e)
+      {       
+        keys[e.keyCode]=true;
+      }
+    
+      function DetectKeyUp(e)
+      {
+        keys[e.keyCode]=false;
+      }   
+        
+      function PaddleControl()
+      {
+        if(keys[38])
+          yposB-=paddle_speed;
+        if(keys[40])
+          yposB+=paddle_speed;     
+        if((yposA+0.5*paddle_height>yposC)&&(xposC<canvas.width/2))
+          yposA-=paddle_speed;
+        if((yposA+0.5*paddle_height<yposC)&&(xposC<canvas.width/2))
+          yposA+=paddle_speed;
+        
+        if(yposA<10)
+          yposA=10;
+        if(yposA>490)
+          yposA=490;
+        if(yposB<10)
+          yposB=10;
+        if(yposB>490)
+          yposB=490;
+      }      
+      
+  
+	  
+	  function BallBoostB()
+	  {
+		  if(keys[38])
+		  	yvelC-=paddle_speed/2;
+		  if(keys[40])
+		  	yvelC+=paddle_speed/2;
+	  }
+      
+	  function BallBoostA()
+	  {		  
+		  if(keys[87])
+		  	yvelC-=paddle_speed/2;
+		  if(keys[83])
+		  	yvelC+=paddle_speed/2;
+	  }
+      function BallWallCollider()
+      {
+        if(yposC-radius<0)
+        {        
+          yvelC=Math.abs(yvelC);
+        }
+        if(yposC+radius>canvas.height)
+        {
+          yvelC=-1*Math.abs(yvelC);
+        }
+          
+        if(xposC-radius<0)
+        {
+          ScoreKeeper(2);
+          RespawnBall();
+        }
+        if(xposC+radius>canvas.width)
+        {
+          ScoreKeeper(1);
+          RespawnBall();
+        } 
+      }
+      
+      function BallPaddleCollider()
+      {
+        if((xposC+0.5*xvelC+radius>xposB)&&(yposC+0.5*yvelC+radius>yposB)&&(yposC+0.5*yvelC-radius<yposB+paddle_height)&&(xposC+0.5*xvelC<xposB))
+        {
+          console.log("paddlecollision");
+          xvelC=-1*Math.abs(xvelC);    
+		  BallBoostB();      
+        }
+               
+        if((xposC+0.5*xvelC-radius<xposA+paddle_width)&&(yposC+0.5*yvelC+radius>yposA)&&(yposC+0.5*yvelC-radius<yposA+paddle_height)&&(xposC+0.5*xvelC>xposA+paddle_width))
+        {
+          console.log("paddlecollision");
+          xvelC=Math.abs(xvelC);
+		  BallBoostA();
+        }
+        //side of the paddle
+        if((xposC>xposB)&&(xposC<xposB+paddle_width)&&(yposC+radius>yposB)&&(yposC-radius<yposB+paddle_height))
+        {
+          if(yposC<yposB)
+            yvelC=-1*Math.abs(yvelC);
+          if(yposC>yposB)
+            yvelC=Math.abs(yvelC);
+          BallBoostB();	
+          BallBoostB();
+        }		
+        if((xposC<xposA+paddle_width)&&(xposC>xposA)&&(yposC+radius>yposA)&&(yposC-radius<yposA+paddle_height))
+        {
+          
+          if(yposC<yposA)
+            yvelC=-1*Math.abs(yvelC);
+          if(yposC>yposA)
+            yvelC=Math.abs(yvelC);
+          BallBoostA();
+          BallBoostA();
+        }
+      }
+      
+      function RespawnBall()
+      {
+        xposC=canvas.width/2;
+        yposC=canvas.height/2;
+        angle = GenerateRandomAngle();
+        radians = angle*Math.PI/180;
+        xvelC = Math.cos(radians)*ballspeed;
+        yvelC = Math.sin(radians)*ballspeed;
+      }
+      
+      function ScoreKeeper(player)
+      {
+        if(player==1)
+          player1_score++;
+        if(player==2)
+          player2_score++;   
+        
+        var winner;
+        
+        if((player1_score==score_limit)||(player2_score==score_limit))
+        {
+          clearInterval(x);
+          ctx.font="20px Courier";
+          ctx.fillStyle="black";
+          ctx.fillText("Game Over!",canvas.width/2-40,canvas.height/2);
+          if(player1_score>player2_score)
+            ctx.fillText("Player 1 wins!",canvas.width/2-70,canvas.height/2+50);
+          else
+            ctx.fillText("Player 2 wins!",canvas.width/2-70,canvas.height/2+50);
+        }                    
+      }
+      
+      function BallSpeedLimiter()
+      {
+        if(yvelC>paddle_speed*1.25)
+          yvelC=paddle_speed*1.25;
+      }
+      
+      function ScoreDisplay()
+      {
+        ctx.font="20px Courier";
+        ctx.fillStyle="black";
+        ctx.fillText("Player 1",10,30);
+        ctx.fillText(player1_score, 10,60);        
+        ctx.fillText("Player 2",canvas.width-100,30);
+        ctx.fillText(player2_score, canvas.width-100,60);
+      }
+      
+      function MainLoop()
+      {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        DrawPaddleA();
+        DrawPaddleB();
+        DrawBall();
+        UpdateBall();
+        PaddleControl();        
+        BallWallCollider();
+        BallPaddleCollider();
+        ScoreDisplay();
+        BallSpeedLimiter();
+      }
+      
+      canvas.addEventListener("keydown",DetectKeyDown); 
+      canvas.addEventListener("keyup",DetectKeyUp);  
+      var x = setInterval(MainLoop,25);
+      
+     
+    </script>
+  </body>
+</html>

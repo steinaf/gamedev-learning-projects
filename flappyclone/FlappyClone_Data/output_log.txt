@@ -1,0 +1,34 @@
+Initialize engine version: 4.5.5f1 (7684ad0c5a44)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GT 750M   (ID=0xfe4)
+    Vendor:   NVIDIA
+    VRAM:     4029 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Stein\Documents\flappycrap\FlappyClone_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Stein\Documents\flappycrap\FlappyClone_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Stein\Documents\flappycrap\FlappyClone_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Stein\Documents\flappycrap\FlappyClone_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+- Completed reload, in  0.052 seconds
+desktop: 1366x768 60Hz; virtual: 1366x768 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+UnloadTime: 0.388610 ms
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 107.
+Total: 0.904580 ms (FindLiveObjects: 0.033122 ms CreateObjectMapping: 0.030323 ms MarkObjects: 0.281777 ms  DeleteObjects: 0.015861 ms)
+
+UnloadTime: 0.250520 ms
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 105.
+Total: 0.417534 ms (FindLiveObjects: 0.004665 ms CreateObjectMapping: 0.006064 ms MarkObjects: 0.084439 ms  DeleteObjects: 0.002799 ms)
+
+UnloadTime: 0.372282 ms
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 105.
+Total: 0.421266 ms (FindLiveObjects: 0.003732 ms CreateObjectMapping: 0.006531 ms MarkObjects: 0.081174 ms  DeleteObjects: 0.001866 ms)
+

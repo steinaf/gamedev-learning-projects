@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title></title>
+  </head>
+  <body><canvas id="myCanvas" height="600" width="1000" tabindex="0"></canvas>
+    <script>
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    canvas.focus();
+    var keys=[];
+      
+    var snake1_xmap=[];
+    var snake1_ymap=[];
+  
+  
+    function DetectKeyDown(e)
+    {      
+      keys[e.keyCode]=true;
+    }
+    
+    function DetectKeyUp(e)
+    {
+      keys[e.keyCode]=false;
+    }   
+    
+    function square(xpos,ypos,size,colour)
+    {
+      this.xpos=xpos;
+      this.ypos=ypos;
+      this.size=size;
+      this.colour=colour;
+    }
+    
+    function snake(square_array,length,speed)
+    {
+      this.square_array=[];    
+      this.length=length;
+      this.speed=speed;
+      this.DrawSnake=DrawSnake;
+      this.MoveSnake=MoveSnake;
+    }
+    
+    var tmparr=[];
+    
+    var snake1 = new snake(tmparr,0,0);
+    
+    function DrawSnake()
+    {
+      for(var i=0;i<this.length;i++)
+      {
+        ctx.beginPath();
+        ctx.fillStyle=this.square_array[i].colour;
+        ctx.strokeStyle="black";
+        ctx.rect(this.square_array[i].xpos,this.square_array[i].ypos,this.square_array[i].size,this.square_array[i].size);        
+        ctx.stroke();
+        ctx.fill();
+      }
+    }    
+    
+    function MoveSnake()
+    {
+      
+    }
+    
+    function PopulateSnakeOne()
+    {
+      var p1_start_x = 400;
+      var p1_start_y = 300;
+      var p1_length = 10;
+      var p1_speed = 2;
+      var p1_colour = "red";
+      var p1_square_array = [];
+      var p1_square_size = 10;
+      for(var i=0;i<p1_length;i++)
+      {
+        if(i==0)
+        {
+          p1_colour = "black";          
+        }
+        else
+        {
+          p1_colour = "red";
+        }
+        snake1.square_array[i] = new square(p1_start_x,p1_start_y+i*p1_square_size,p1_square_size,p1_colour);
+        console.log(snake1.square_array[i]);
+      }
+      snake1.length=p1_length;
+      snake1.speed=p1_speed;
+    }
+    
+    PopulateSnakeOne();
+    
+    
+    
+    function MainLoop()
+    {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      snake1.DrawSnake();
+      snake1.MoveSnake();
+    }
+    
+    canvas.addEventListener("keydown",DetectKeyDown); 
+    canvas.addEventListener("keyup",DetectKeyUp)  
+    setInterval(MainLoop,25);
+  </script>
+  </body>
+</html>

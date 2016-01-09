@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title></title>
+  </head>
+  <body><canvas id="myCanvas" height="600" width="1000" tabindex="0"></canvas>
+    <script>
+     var canvas = document.getElementById("myCanvas");
+     var ctx = canvas.getContext("2d");
+     canvas.focus();
+     
+     
+     var keys=[]; 
+     function DetectKeyDown(e)
+    {       
+      keys[e.keyCode]=true;
+    }
+  
+    function DetectKeyUp(e)
+    {
+      keys[e.keyCode]=false;
+    }   
+   
+     
+     function square(xpos,ypos,colour)
+     {
+       this.xpos=xpos;
+       this.ypos=ypos;
+       this.colour=colour;
+     }
+     
+     function snake(square_array,xmap,ymap,length,speed,block_size,inp_keys)
+     {
+       this.square_array=square_array;       
+       this.xmap=xmap;
+       this.ymap=ymap;
+       this.length=length;
+       this.speed=speed;       
+       this.block_size=block_size;
+       this.inp_keys=inp_keys;
+       this.DrawSnake = DrawSnake;
+       this.MoveSnake = MoveSnake;
+       this.CheckWallCollision = CheckWallCollision;
+     }
+     
+     var p1_length=10;
+     var p2_length=10;
+     var p1_speed=3;
+     var p2_speed=3;
+     var block_size=10;
+     var p1_inp_keys="wasd";
+     var p2_inp_keys="arrows";
+     var tmp=[];
+     var snake1 = new snake(tmp,tmp,tmp,p1_length,p1_speed,block_size,p1_inp_keys);
+     var snake2 = new snake(tmp,tmp,tmp,p2_length,p2_speed,block_size,p2_inp_keys);
+     
+     function PopulateSnakeOne()
+     {
+       var tmpsqr=[];
+       var xp=400;
+       var yp=200;
+       var colour;
+       for(var i=0;i<snake1.length;i++)
+       {
+         if(i==0)
+           colour="black";
+         else
+           colour="blue";
+         tmpsqr[i] = new square(xp,yp+i*snake1.block_size,colour);
+       }
+       snake1.square_array = tmpsqr;
+       snake1.xmap=new Array(20*snake1.block_size);
+       snake1.ymap=new Array(20*snake1.block_size);
+       
+       snake1.xmap[0] = snake1.square_array[0].xpos;
+       snake1.ymap[0] = snake1.square_array[0].ypos;
+       for(i=1;i<snake1.xmap.length;i++)
+       {         
+         snake1.xmap[i] = snake1.xmap[i-1];
+       }
+       for(i=1;i<snake1.ymap.length;i++)
+       {         
+         snake1.ymap[i] = snake1.ymap[i-1]+1;
+       }
+       //console.log(snake1);
+       //console.log(snake1.inp_keys);
+     }
+      
+     function PopulateSnakeTwo()
+     {
+       var tmpsqr=[];
+       var xp=600;
+       var yp=200;
+       var colour;
+       for(var i=0;i<snake2.length;i++)
+       {
+         if(i==0)
+           colour="black";
+         else
+           colour="red";
+         tmpsqr[i] = new square(xp,yp+i*snake2.block_size,colour);
+       }
+       snake2.square_array = tmpsqr;
+       snake2.xmap=new Array(20*snake2.block_size);
+       snake2.ymap=new Array(20*snake2.block_size);
+       
+       snake2.xmap[0] = snake2.square_array[0].xpos;
+       snake2.ymap[0] = snake2.square_array[0].ypos;
+       for(i=1;i<snake2.xmap.length;i++)
+       {         
+         snake2.xmap[i] = snake2.xmap[i-1];
+       }
+       for(i=1;i<snake2.ymap.length;i++)
+       {         
+         snake2.ymap[i] = snake2.ymap[i-1]+1;
+       }
+       //console.log(snake2);
+     }
+
+      
+      function DrawSnake()
+      {
+        for(var i=0;i<this.length;i++)
+        {
+          ctx.beginPath();
+          //console.log(this);;
+          ctx.rect(this.square_array[i].xpos,this.square_array[i].ypos,this.block_size,this.block_size);
+          ctx.fillStyle=this.square_array[i].colour;
+          ctx.strokeStyle="black";
+          ctx.fill();
+          ctx.stroke();
+        }
+      }  
+      
+      function MoveSnake()
+      {
+        var buttonpressed=0;
+        var up=0;
+        var down=0;
+        var left=0;
+        var right=0;
+       
+       if(this.inp_keys=="arrows")
+       {
+       
+         if(keys[37]||keys[38]||keys[39]||keys[40])
+           buttonpressed=1;
+         if(keys[37])
+         {
+           left=1;
+         }       
+         else if(keys[39])
+         {
+           right=1;
+         }
+         if(keys[40])
+         {
+           down=1;
+         }
+         else if(keys[38])
+         {
+           up=1;
+         }
+       }
+       else if(this.inp_keys=="wasd")
+       {
+       
+         if(keys[83]||keys[87]||keys[65]||keys[68])
+           buttonpressed=1;
+         if(keys[65])
+         {
+           left=1;
+         }       
+         else if(keys[68])
+         {
+           right=1;
+         }
+         if(keys[83])
+         {
+           down=1;
+         }
+         else if(keys[87])
+         {
+           up=1;
+         }
+       }
+       if(buttonpressed)
+       {
+         for(var k=0;k<=this.speed;k++)
+         {
+           if(up)         
+             this.square_array[0].ypos--;         
+           if(left)         
+             this.square_array[0].xpos--;
+           if(down)         
+             this.square_array[0].ypos++;         
+           if(right)         
+             this.square_array[0].xpos++;
+           
+           
+           
+           for(i=this.xmap.length;i>0;i--)
+           {
+             this.xmap[i]=this.xmap[i-1];
+             this.ymap[i]=this.ymap[i-1];
+           }
+           this.xmap[0] = this.square_array[0].xpos;
+           this.ymap[0] = this.square_array[0].ypos;
+           
+           for(i=1;i<this.length;i++)
+           {
+             this.square_array[i].xpos = this.xmap[i*this.block_size];
+             this.square_array[i].ypos = this.ymap[i*this.block_size];
+           }
+         }
+       }
+      } 
+      
+      
+      function CheckWallCollision()
+      {     
+        //console.log("checkwallcollision");
+        var collision = 0;
+        if((this.square_array[0].xpos<0)||(this.square_array[0].ypos<0)||(this.square_array[0].xpos+this.block_size>canvas.width)||(this.square_array[0].ypos+this.block_size>canvas.height))
+        {
+          console.log("collision occurred");
+          collision = 1;
+          //decrement lives and reset
+          if(this == snake1)
+            PopulateSnakeOne();
+          else if(this == snake2)
+            PopulateSnakeTwo();
+        }                
+      }
+      
+      
+      function MainLoop()
+      {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        snake1.DrawSnake();
+        snake1.MoveSnake();
+        snake2.DrawSnake();
+        snake2.MoveSnake();
+        snake1.CheckWallCollision();
+        snake2.CheckWallCollision();
+      }
+      
+      
+      PopulateSnakeOne();
+      PopulateSnakeTwo();
+      
+      canvas.addEventListener("keydown",DetectKeyDown); 
+      canvas.addEventListener("keyup",DetectKeyUp);
+      var x = setInterval(MainLoop,25);
+      
+     
+   </script>
+    
+  </body>
+</html>

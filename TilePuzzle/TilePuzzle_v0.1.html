@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title>TileGame</title>
+  </head>
+  <body><canvas id="myCanvas" height="600" width="800" tabindex="0"></canvas>
+    <script>
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d");
+      canvas.focus();
+      
+      function TileObject(xpos,ypos,arr_i,arr_j,size,order,position,text,glow)
+      {
+        this.xpos=xpos;
+        this.ypos=ypos;
+        this.arr_i=arr_i;
+        this.arr_j=arr_j;
+        this.size=size;
+        this.order=order;
+        this.position=position;
+        this.text=text;
+        this.glow=glow;
+        //this.MoveTile=MT;
+        //this.GlowTile=GT;
+      }
+      
+      
+      function GlowTile(i,j)
+      {
+        TileArray[i][j].glow=1;
+      }
+      
+      function FindEmptyTile()
+      {        
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {
+            if(TileArray[i][j].text=="")                        
+            {
+              emptypos[0]=i;
+              emptypos[1]=j;
+            }
+          }
+        }        
+      }
+      
+      var TileArray=[];
+      var emptypos=[];
+      var moves = 0;
+      var milliseconds=0;
+      var seconds=0;
+      var minutes=0;
+      
+      
+      for(i=0;i<5;i++)
+      {
+        TileArray[i] = new Array(5);
+      }
+      
+      function PopulateArray()
+      {        
+        var xpos;
+        var ypos;
+        var size=150;
+        var position=0;
+        var order=0;
+        var text;
+        var arr_i;
+        var arr_j;
+        var i;
+        var j;
+        var glow=0;
+        for(i=0;i<5;i++)
+        {
+          for(j=0;j<5;j++)
+          {
+            xpos = j*size;
+            ypos=i*size;
+            order=4*i+j;
+            position=order;
+            arr_i=i;
+            arr_j=j;
+            console.log(i+" "+j)
+            text=String.fromCharCode(65+order);
+            if(text >= "P")
+              text = "";
+            console.log("order:"+order);
+            TileArray[i][j] = new TileObject(xpos,ypos,arr_i,arr_j,size,order,position,text,glow);  
+            //console.log(TileArray[i][j].order)
+          }
+        }
+                
+      }
+      
+      function DrawTiles()
+      {
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {
+            ctx.font="30px Courier Bold";
+            if(TileArray[i][j].glow==1)
+              ctx.fillStyle="red";
+            else
+              ctx.fillStyle="white";
+            ctx.fillText(TileArray[i][j].text,TileArray[i][j].xpos+65,TileArray[i][j].ypos+80);
+          }
+        }
+      }
+      
+      function DrawIcons()
+      {
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {
+            if(TileArray[i][j].text!="")
+              ctx.drawImage(tile_img,TileArray[i][j].xpos,TileArray[i][j].ypos);
+          }
+        }
+      }
+      
+      function MoveTile(i,j,quiet)
+      {
+        //console.log("MoveTile");
+        var tmp;
+        var tmppos;
+        FindEmptyTile();
+        //console.log(i+" "+j);
+        //console.log(TileArray[i][j].text);
+        //console.log(TileArray[i][j].arr_i+" "+TileArray[i][j].arr_j);
+        //console.log(emptypos[0]+" "+emptypos[1]);
+        if(((TileArray[i][j].arr_i+1==emptypos[0])||(TileArray[i][j].arr_i-1==emptypos[0]))&&(TileArray[i][j].arr_j==emptypos[1]))//||(((TileArray[i][j].arr_j+1==emptypos[1])||((TileArray[i][j].arr_j-1==emptypos[1]))&&(TileArray[i][j].arr_i==emptypos[0]))))
+        {
+          console.log("swap occurred");
+          if(!quiet)
+            slide.play();
+          moves++;
+          tmp=TileArray[i][j].text;
+          TileArray[i][j].text=TileArray[emptypos[0]][emptypos[1]].text;
+          TileArray[emptypos[0]][emptypos[1]].text=tmp;
+          tmppos=TileArray[i][j].position;
+          TileArray[i][j].position=TileArray[emptypos[0]][emptypos[1]].position;
+          TileArray[emptypos[0]][emptypos[1]].position=tmppos;
+        }
+        if(((TileArray[i][j].arr_j+1==emptypos[1])||((TileArray[i][j].arr_j-1==emptypos[1])))&&(TileArray[i][j].arr_i==emptypos[0]))
+        {
+          console.log("swap occurred");
+          if(!quiet)
+            slide.play();
+          moves++;
+          tmp=TileArray[i][j].text;
+          TileArray[i][j].text=TileArray[emptypos[0]][emptypos[1]].text;
+          TileArray[emptypos[0]][emptypos[1]].text=tmp;
+          tmppos=TileArray[i][j].position;
+          TileArray[i][j].position=TileArray[emptypos[0]][emptypos[1]].position;
+          TileArray[emptypos[0]][emptypos[1]].position=tmppos;
+        }
+      }
+      
+      function DetectMouseClick(e)
+      {
+        //console.log("detectmouseclick");
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {          
+            //console.log(TileArray[i][j].xpos+" "+TileArray[i][j].ypos);
+            //console.log(TileArray[i][j+1].xpos+" "+TileArray[i][j+1].ypos);
+            if((e.clientX>TileArray[i][j].xpos)&&(e.clientX<TileArray[i][j+1].xpos))              
+            {
+              if((e.clientY>TileArray[i][j].ypos)&&(e.clientY<TileArray[i+1][j].ypos))
+              {
+                console.log("buttonpress");
+                MoveTile(i,j,0);
+              }
+            }         
+          }          
+        }        
+        
+        
+      }
+      
+      function DetectMouseMove(e)
+      {
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {
+            TileArray[i][j].glow=0;
+          }
+        }
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {
+            if((e.clientX>TileArray[i][j].xpos)&&(e.clientX<TileArray[i][j+1].xpos))              
+            {
+              if((e.clientY>TileArray[i][j].ypos)&&(e.clientY<TileArray[i+1][j].ypos))
+              {
+                if(TileArray[i][j].text!="")
+                  GlowTile(i,j);
+              }
+            }
+          }
+        }
+      }
+      
+      function DisplayMoves()
+      {
+        ctx.fillStyle="white";
+        ctx.font="30px Courier Bold";
+        ctx.fillText("Moves: ",650,50);
+        ctx.fillText(moves,650,100);        
+      }
+      
+      function DisplayTime()
+      {
+        if(moves>0)
+          milliseconds+=25;
+        if(milliseconds==1000)
+        {
+          milliseconds=0;+
+          seconds++;
+        }
+        if(seconds==60)
+        {
+          seconds=0;
+          minutes++;
+        }
+        ctx.font="30px Courier Bold";
+        ctx.fillStyle="white";
+        ctx.fillText("Time: ",650,400);
+        ctx.fillText(minutes+":"+seconds,650,450);                  
+      }
+      
+      function DrawBackground()
+      {
+        ctx.fillStyle="black";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+      }
+      
+      function RandomizeTiles()
+      {
+        var n = 2000+(2*Math.floor(Math.random()*500));
+        var tmp;
+        while(n>0)
+        {
+          i=Math.floor(Math.random()*4);
+          j=Math.floor(Math.random()*4);                   
+          MoveTile(i,j,1);
+          n--;
+          
+        }
+      }
+      
+      function CheckVictory()
+      {
+        var victory=1; 
+        for(i=0;i<4;i++)
+        {
+          for(j=0;j<4;j++)
+          {                      
+            if(TileArray[i][j].position != TileArray[i][j].order)
+            {
+              victory=0;    
+              console.log(TileArray[i][j].position+" "+TileArray[i][j].order)
+              console.log(i+" "+j+"victorycheckfail");
+              
+            }
+            
+          }
+        }
+        if(victory==1)
+        {
+          ctx.font="30px Courier Bold";
+          ctx.fillStyle="white";
+          ctx.fillText("Victory!",650,250);
+          canvas.removeEventListener("mousedown",DetectMouseClick);
+          clearInterval(x);
+        }
+      }
+      
+      PopulateArray();
+      RandomizeTiles();
+      
+      function MainLoop()
+      {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        DrawBackground();
+        DrawIcons();
+        DrawTiles();
+        DisplayMoves();
+        DisplayTime();
+        CheckVictory();
+      }
+      
+      var tile_img = new Image();
+      tile_img.src = "tile_icon_inv.jpg";
+      
+      var slide = new Audio("ping_pong_8bit_plop.ogg");  
+      canvas.addEventListener("mousedown",DetectMouseClick);
+      canvas.addEventListener("mousemove",DetectMouseMove);
+      
+      var x = setInterval(MainLoop,25);
+      
+        
+    </script>
+  </body>
+</html>

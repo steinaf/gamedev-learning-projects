@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252" http-equiv="content-type">
+    <title></title>
+  </head>
+  <body><canvas id="myCanvas" height="600" width="1000" tabindex="0"></canvas>
+    <script>
+     var canvas = document.getElementById("myCanvas");
+     var ctx = canvas.getContext("2d");
+     canvas.focus();
+     
+     
+     var keys=[]; 
+     function DetectKeyDown(e)
+    {       
+      keys[e.keyCode]=true;
+    }
+  
+    function DetectKeyUp(e)
+    {
+      keys[e.keyCode]=false;
+    }   
+   
+     
+     function square(xpos,ypos,colour)
+     {
+       this.xpos=xpos;
+       this.ypos=ypos;
+       this.colour=colour;
+     }
+     
+     function snake(square_array,xmap,ymap,length,speed,block_size,inp_keys,score,lives)
+     {
+       this.square_array=square_array;       
+       this.xmap=xmap;
+       this.ymap=ymap;
+       this.length=length;
+       this.speed=speed;       
+       this.block_size=block_size;
+       this.inp_keys=inp_keys;
+       this.score=score;
+       this.lives=lives;
+       this.DrawSnake = DrawSnake;
+       this.MoveSnake = MoveSnake;
+       this.CheckWallCollision = CheckWallCollision;
+       this.CheckPUCollision = CheckPUCollision;
+       this.GreenPickup = GreenPickup;
+       this.BrownPickup = BrownPickup;
+       this.PinkPickup = PinkPickup;
+       this.OrangePickup = OrangePickup;
+       this.BodyCollision = BodyCollision;
+     }
+      
+     function powerup_obj(xpos,ypos,size,colour)
+     {
+       this.xpos=xpos;
+       this.ypos=ypos;
+       this.size=size;
+       this.colour=colour;
+       this.GeneratePU = GeneratePU;
+       this.DrawPU = DrawPU;
+     } 
+      
+     var length_increment=2;
+     var length_decrement=2;
+     var frame_limit=200;
+     var frame_count=frame_limit;
+     var menu=1;
+     var glowbutton=0;
+     var p1_length=10;
+     var p2_length=10;
+     var p1_score=0;
+     var p2_score=0;
+     var p1_lives=3;
+     var p2_lives=3;
+     var p1_speed=4;
+     var p2_speed=4;
+     var block_size=10;
+     var p1_inp_keys="wasd";
+     var p2_inp_keys="arrows";
+     var tmp=[];
+     var snake1 = new snake(tmp,tmp,tmp,p1_length,p1_speed,block_size,p1_inp_keys,p1_score,p1_lives);
+     var snake2 = new snake(tmp,tmp,tmp,p2_length,p2_speed,block_size,p2_inp_keys,p2_score,p2_lives);
+     var powerup = new powerup_obj(0,0,0,"");
+     
+  
+     
+     function PopulateSnakeOne()
+     {
+       var tmpsqr=[];
+       var xp=400;
+       var yp=200;
+       var colour;
+       snake1.length=p1_length;
+       snake1.speed=p1_speed;
+       for(var i=0;i<snake1.length;i++)
+       {
+         if(i==0)
+           colour="white";
+         else
+           colour="blue";
+         tmpsqr[i] = new square(xp,yp+i*snake1.block_size,colour);
+       }
+       snake1.square_array = tmpsqr;
+       snake1.xmap=new Array(20*snake1.block_size);
+       snake1.ymap=new Array(20*snake1.block_size);
+       
+       snake1.xmap[0] = snake1.square_array[0].xpos;
+       snake1.ymap[0] = snake1.square_array[0].ypos;
+       for(i=1;i<snake1.xmap.length;i++)
+       {         
+         snake1.xmap[i] = snake1.xmap[i-1];
+       }
+       for(i=1;i<snake1.ymap.length;i++)
+       {         
+         snake1.ymap[i] = snake1.ymap[i-1]+1;
+       }
+     
+       //console.log(snake1);
+       //console.log(snake1.inp_keys);
+     }
+      
+     function PopulateSnakeTwo()
+     {
+       var tmpsqr=[];
+       var xp=600;
+       var yp=200;
+       var colour;             
+       snake2.length=p2_length;
+       snake2.speed=p2_speed;
+       for(var i=0;i<snake2.length;i++)
+       {
+         if(i==0)
+           colour="white";
+         else
+           colour="red";
+         tmpsqr[i] = new square(xp,yp+i*snake2.block_size,colour);
+       }
+       snake2.square_array = tmpsqr;
+       snake2.xmap=new Array(20*snake2.block_size);
+       snake2.ymap=new Array(20*snake2.block_size);
+       
+       snake2.xmap[0] = snake2.square_array[0].xpos;
+       snake2.ymap[0] = snake2.square_array[0].ypos;
+       for(i=1;i<snake2.xmap.length;i++)
+       {         
+         snake2.xmap[i] = snake2.xmap[i-1];
+       }
+       for(i=1;i<snake2.ymap.length;i++)
+       {         
+         snake2.ymap[i] = snake2.ymap[i-1]+1;
+       }       
+       //console.log(snake2);
+     }
+
+      
+      function DrawSnake()
+      {
+        for(var i=0;i<this.length;i++)
+        {
+          ctx.beginPath();
+          //console.log(this);;
+          ctx.rect(this.square_array[i].xpos,this.square_array[i].ypos,this.block_size,this.block_size);
+          ctx.fillStyle=this.square_array[i].colour;
+          ctx.strokeStyle="white";
+          ctx.fill();
+          ctx.stroke();
+        }
+      }  
+      
+      function MoveSnake()
+      {
+        var buttonpressed=0;
+        var up=0;
+        var down=0;
+        var left=0;
+        var right=0;
+       
+       if(this.inp_keys=="arrows")
+       {
+       
+         if(keys[37]||keys[38]||keys[39]||keys[40])
+           buttonpressed=1;
+         if(keys[37])
+         {
+           left=1;
+         }       
+         else if(keys[39])
+         {
+           right=1;
+         }
+         if(keys[40])
+         {
+           down=1;
+         }
+         else if(keys[38])
+         {
+           up=1;
+         }
+       }
+       else if(this.inp_keys=="wasd")
+       {
+       
+         if(keys[83]||keys[87]||keys[65]||keys[68])
+           buttonpressed=1;
+         if(keys[65])
+         {
+           left=1;
+         }       
+         else if(keys[68])
+         {
+           right=1;
+         }
+         if(keys[83])
+         {
+           down=1;
+         }
+         else if(keys[87])
+         {
+           up=1;
+         }
+       }
+       if(buttonpressed)
+       {
+         for(var k=0;k<=this.speed;k++)
+         {
+           if(up)         
+             this.square_array[0].ypos--;         
+           if(left)         
+             this.square_array[0].xpos--;
+           if(down)         
+             this.square_array[0].ypos++;         
+           if(right)         
+             this.square_array[0].xpos++;
+           
+           
+           
+           for(i=this.xmap.length;i>0;i--)
+           {
+             this.xmap[i]=this.xmap[i-1];
+             this.ymap[i]=this.ymap[i-1];
+           }
+           this.xmap[0] = this.square_array[0].xpos;
+           this.ymap[0] = this.square_array[0].ypos;
+           
+           for(i=1;i<this.length;i++)
+           {
+             this.square_array[i].xpos = this.xmap[i*this.block_size];
+             this.square_array[i].ypos = this.ymap[i*this.block_size];
+           }
+         }
+       }
+      } 
+      
+      
+      function CheckWallCollision()
+      {     
+        //console.log("checkwallcollision");
+        var collision = 0;
+        if((this.square_array[0].xpos<0)||(this.square_array[0].ypos<0)||(this.square_array[0].xpos+this.block_size>canvas.width)||(this.square_array[0].ypos+this.block_size>canvas.height))
+        {
+          //console.log("collision occurred");
+          collision = 1;
+          //decrement lives and reset
+          if(this == snake1)
+          {
+            PopulateSnakeOne();
+            snake1.lives--;
+          }
+          else if(this == snake2)
+          {
+            PopulateSnakeTwo();
+            snake2.lives--;
+          }
+        }                
+      }
+      
+      function GeneratePU()
+      {
+        if(frame_count>frame_limit)
+        {    
+          frame_count=0;
+          this.xpos = Math.floor(10+Math.random()*(canvas.width-20));
+          this.ypos = Math.floor(10+Math.random()*(canvas.height-20));
+          this.size = 10;
+          var rand = 1+Math.floor(Math.random()*4);
+          if(rand==1)
+            this.colour="green";
+          if(rand==2)
+            this.colour="brown";
+          if(rand==3)
+            this.colour="pink";
+          if(rand==4)
+            this.colour="orange";        
+        }
+        else
+          frame_count++;
+        
+        //console.log(frame_count);
+        
+      }
+      
+      function DrawPU()
+      {
+        //console.log(this);
+        ctx.beginPath();
+        ctx.rect(this.xpos,this.ypos,this.size,this.size);
+        ctx.fillStyle=this.colour;
+        ctx.stroke();
+        ctx.fill();
+      }
+      
+      function CheckPUCollision()
+      {        
+        if((this.square_array[0].xpos<powerup.xpos+powerup.size+1)&&(this.square_array[0].xpos+this.block_size>powerup.xpos)&&(this.square_array[0].ypos<powerup.ypos+powerup.size+1)&&(this.square_array[0].ypos+this.block_size>powerup.ypos))
+        {
+          //collision occurred
+          console.log("PU collision");
+          if(powerup.colour=="green")
+          {     
+            this.GreenPickup();
+          }
+          if(powerup.colour=="brown")
+          {
+            this.BrownPickup();
+          }
+          if(powerup.colour=="pink")
+          {
+            this.PinkPickup();
+          }
+          if(powerup.colour=="orange")
+          {
+            this.OrangePickup();
+          }
+          
+          frame_count=frame_limit+1;
+          
+        }
+      }
+      
+      function GreenPickup()
+      {
+        if(this.speed<8)
+          this.speed+=2;
+        this.score+=10;
+      }
+      
+      function BrownPickup()
+      {
+        if(this.speed>2)
+          this.speed-=2;
+        this.score+=5;
+      }
+      
+      function PinkPickup()
+      {
+        if(length<20)
+        {
+          for(i=0;i<length_increment;i++)
+          {
+            this.square_array[this.length+i] = new square(this.xmap[i*this.block_size],this.ymap[i*this.block_size],this.colour);
+          }
+          this.length+=length_increment;
+        }
+        this.score+=10;
+      }
+      
+      function OrangePickup()
+      {        
+        if(this.length>4)
+        {
+          this.length-=length_decrement;
+        }
+        this.score-=5;
+        
+      }
+      
+      function BodyCollision()
+      {
+        var collision = 0;
+        for(i=2;i<snake1.length-length_increment;i++)
+        {
+          if((this.square_array[0].xpos+this.block_size>snake1.square_array[i].xpos)&&(this.square_array[0].xpos<snake1.square_array[i].xpos+snake1.block_size)&&(this.square_array[0].ypos+this.block_size>snake1.square_array[i].ypos)&&(this.square_array[0].ypos<snake1.square_array[i].ypos+snake1.block_size))
+          {            
+            collision=1;
+            console.log("collision with snake1");
+          }
+        }
+        for(i=2;i<snake2.length-length_increment;i++)
+        {
+          if((this.square_array[0].xpos+this.block_size>snake2.square_array[i].xpos)&&(this.square_array[0].xpos<snake2.square_array[i].xpos+snake2.block_size)&&(this.square_array[0].ypos+this.block_size>snake2.square_array[i].ypos)&&(this.square_array[0].ypos<snake2.square_array[i].ypos+snake2.block_size))
+          {
+            collision=1;
+            console.log("collision with snake2");
+          }                              
+        }
+        
+        if(collision==1)
+        {
+          this.lives--;
+          if(this==snake1)
+            PopulateSnakeOne();
+          else if(this==snake2)
+            PopulateSnakeTwo();
+        }
+      }
+                            
+      function DisplayScoreLives()
+      {
+        //console.log(snake1.score);
+        ctx.fillStyle="white";
+        ctx.font="20px Courier New";
+        ctx.fillText("Player 1 Score: ",10,560);
+        ctx.fillText(snake1.score,10,580); 
+        ctx.fillText("Player 2 Score: ",810,560);
+        ctx.fillText(snake2.score,950,580);
+        ctx.fillText("Lives Remaining: ",10,20);
+        ctx.fillText(snake1.lives,10,40);
+        ctx.fillText("Lives Remaining: ",800,20);
+        ctx.fillText(snake2.lives,950,40);        
+      }
+      
+      function VictoryCheck()
+      {
+        if((snake2.lives==0)||(snake1.score>=200))
+        {          
+          ctx.fillStyle="white";
+          ctx.font="20px Courier New";
+          ctx.fillText("Game Over! Player 1 Wins!",350,300);
+          clearInterval(x);
+        }
+        else if((snake1.lives==0)||(snake2.score>=200))
+        {          
+          ctx.fillStyle="white";
+          ctx.font="20px Courier New";
+          ctx.fillText("Game Over! Player 2 Wins!",350,300);
+          clearInterval(x);
+        }        
+      }
+      
+      function DrawMenu()
+      {      
+        if(menu==1)
+        {
+          ctx.fillStyle="black";
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.fillStyle="white";
+          ctx.font="50px Courier New";          
+          ctx.fillText("Snake",425,100);
+          ctx.beginPath();
+          if(glowbutton==0)
+            ctx.strokeStyle="white";
+          else
+            ctx.strokeStyle="red";
+          ctx.rect(400,250,200,100);
+          ctx.stroke();        
+          if(glowbutton==0)
+            ctx.fillStyle="white";
+          else
+            ctx.fillStyle="red";
+          ctx.fillText("Play!",427,310);
+        }
+      }
+      
+      function GlowButton(e)
+      {
+        if(menu==1)
+        {
+          if((e.clientX>400)&&(e.clientY>250)&&(e.clientX<600)&&(e.clientY<350))
+          {
+            glowbutton=1;
+          }
+          else
+            glowbutton=0;
+        }
+        //console.log("Glowbutton!");
+      }
+      
+      function GameTrigger(e)
+      {
+        if(menu==1)
+        {
+          if((e.clientX>400)&&(e.clientY>250)&&(e.clientX<600)&&(e.clientY<350))
+          {
+            menu=0;
+          }          
+        }
+        console.log("Gametrigger");
+      }
+      
+      function PauseCheck()
+      {
+        if(menu==0)
+        {
+          if(keys[27]==1)
+            menu=1;
+        }
+      }
+      
+      function PlayGame()
+      {
+        if(menu==0)
+        {
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+          ctx.fillStyle="black";
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+          powerup.GeneratePU();
+          powerup.DrawPU();
+          snake1.DrawSnake();
+          snake1.MoveSnake();
+          snake2.DrawSnake();
+          snake2.MoveSnake();
+          snake1.CheckWallCollision();
+          snake2.CheckWallCollision();
+          snake1.CheckPUCollision();
+          snake2.CheckPUCollision();
+          snake1.BodyCollision();
+          snake2.BodyCollision();
+          DisplayScoreLives();
+          VictoryCheck();
+          PauseCheck();
+        }
+      
+      }
+      
+      
+      function MainLoop()
+      {
+        DrawMenu();        
+        PlayGame();        
+      }
+      
+      
+      PopulateSnakeOne();
+      PopulateSnakeTwo();
+      
+      canvas.addEventListener("keydown",DetectKeyDown); 
+      canvas.addEventListener("keyup",DetectKeyUp);
+      canvas.addEventListener("mousemove",GlowButton);
+      canvas.addEventListener("mousedown",GameTrigger);
+      var x = setInterval(MainLoop,25);
+    </script>
+  </body>
+</html>
